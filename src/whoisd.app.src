@@ -1,5 +1,5 @@
 {application, whoisd,
- [{description, "An OTP application"},
+ [{description, "RFC3912 implementation"},
   {vsn, "0.1.0"},
   {registered, []},
   {mod, {whoisd_app, []}},

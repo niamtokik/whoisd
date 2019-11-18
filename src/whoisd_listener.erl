@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%%
 %%%-------------------------------------------------------------------
--module(whoisd_listen).
+-module(whoisd_listener).
 -export([start/0, start/1, start/2]).
 -export([start_link/0, start_link/1, start_link/2]).
 -export([callback_mode/0, default_port/0, default_opts/0]).
