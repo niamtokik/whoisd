@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%%
+%%% @doc whoisd_listener module
 %%%-------------------------------------------------------------------
 -module(whoisd_listener).
 -export([start/0, start/1, start/2]).
@@ -10,37 +10,69 @@
 -behavior(gen_statem).
 
 %%--------------------------------------------------------------------
-%%
+%% @doc start/0
 %%--------------------------------------------------------------------
--spec start() -> {ok, pid()}.
-start() -> start([]).
-
--spec start(Args :: list()) -> {ok, pid()}.
-start(Args) -> start(Args, []).
-
--spec start(Args :: list(), Opts :: list()) -> {ok, pid()}.
-start(Args, Opts) -> gen_start:start(?MODULE, Args, Opts).
+-spec start() -> Result when
+      Result :: {ok, pid()}.
+start() -> 
+    start([]).
 
 %%--------------------------------------------------------------------
-%%
+%% @doc start/1
 %%--------------------------------------------------------------------
--spec start_link() -> {ok, pid()}.
-start_link() -> start_link([]).
-
--spec start_link(Args :: list()) -> {ok, pid()}.
-start_link(Args) -> start_link(Args, []).
-
--spec start_link(Args :: list(), Opts :: list()) -> {ok, pid()}.
-start_link(Args, Opts) -> gen_statem:start_link(?MODULE, Args, Opts).
+-spec start(Args) -> Result when
+      Args :: list(),
+      Result :: {ok, pid()}.
+start(Args) -> 
+    start(Args, []).
 
 %%--------------------------------------------------------------------
-%%
+%% @doc start/2
 %%--------------------------------------------------------------------
--spec default_opts() -> list().
-default_opts() -> [binary, {packet, 0}].
+-spec start(Args, Opts) -> Result when
+      Result :: {ok, pid()},
+      Args :: list(),
+      Opts :: list().
+start(Args, Opts) -> 
+    gen_start:start(?MODULE, Args, Opts).
 
 %%--------------------------------------------------------------------
-%%
+%% @doc start_link/0
+%%--------------------------------------------------------------------
+-spec start_link() -> Result when
+      Result :: {ok, pid()}.
+start_link() -> 
+    start_link([]).
+
+%%--------------------------------------------------------------------
+%% @doc start_link/1
+%%--------------------------------------------------------------------
+-spec start_link(Args) -> Result when
+      Result :: {ok, pid()},
+      Args :: list().
+start_link(Args) -> 
+    start_link(Args, []).
+
+%%--------------------------------------------------------------------
+%% @doc start_link/2
+%%--------------------------------------------------------------------
+-spec start_link(Args, Opts) -> Result when
+      Args :: list(),
+      Opts :: list(),
+      Result :: {ok, pid()}.
+start_link(Args, Opts) -> 
+    gen_statem:start_link(?MODULE, Args, Opts).
+
+%%--------------------------------------------------------------------
+%% @doc default_opts/0
+%%--------------------------------------------------------------------
+-spec default_opts() -> Result when 
+      Result :: list().
+default_opts() -> 
+    [binary, {packet, 0}].
+
+%%--------------------------------------------------------------------
+%% @doc init/1
 %%--------------------------------------------------------------------
 -spec init(Args :: list()) 
           -> {ok, active, {pid(), undefined}} |
@@ -67,7 +99,6 @@ listen(cast, {add, acceptor, Counter}, Data) ->
     {keep_state, Data};
 listen({call, From}, {get, acceptor}, Data) -> 
     {keep_state, Data, [{reply, From, ok}]}.
-
 
 %%--------------------------------------------------------------------
 %%

@@ -11,5 +11,5 @@
   {modules, []},
 
   {licenses, ["Apache 2.0"]},
-  {links, []}
+  {links, ["http://github.com/niamtokik/whoisd"]}
  ]}.
