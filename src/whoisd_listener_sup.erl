@@ -47,6 +47,7 @@ flags() ->
 child() -> 
     #{ id => whoisd_listener
      , start => { whoisd_listener, start_link, []}
+     , type => worker
      }.
 
 %%--------------------------------------------------------------------
@@ -59,4 +60,4 @@ child() ->
       Childs :: [Child, ...],
       Child :: map().
 init(_Args) ->
-    {ok, flags(), [child()]}.
+    {ok, {flags(), [child()]}}.

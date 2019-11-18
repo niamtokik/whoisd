@@ -5,7 +5,7 @@
 -export([start/0, start/1, start/2]).
 -export([start_link/0, start_link/1, start_link/2]).
 -export([callback_mode/0, default_port/0, default_opts/0]).
--export([init/1, terminate/2]).
+-export([init/1, terminate/3]).
 -export([active/3, reuse/3, close/3]).
 -behavior(gen_statem).
 
@@ -34,7 +34,7 @@ start(Args) ->
       Args :: list(),
       Opts :: list().
 start(Args, Opts) -> 
-    gen_start:start(?MODULE, Args, Opts).
+    gen_statem:start({local, ?MODULE}, ?MODULE, Args, Opts).
 
 %%--------------------------------------------------------------------
 %% @doc start_link/0
@@ -61,7 +61,7 @@ start_link(Args) ->
       Opts :: list(),
       Result :: {ok, pid()}.
 start_link(Args, Opts) -> 
-    gen_statem:start_link(?MODULE, Args, Opts).
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, Args, Opts).
 
 %%--------------------------------------------------------------------
 %% @doc default_opts/0
@@ -74,9 +74,11 @@ default_opts() ->
 %%--------------------------------------------------------------------
 %% @doc init/1
 %%--------------------------------------------------------------------
--spec init(Args :: list()) 
-          -> {ok, active, {pid(), undefined}} |
-             {error, term()}.
+-spec init(Args) -> Result when
+      Args :: list(),
+      Result :: {ok, active, Data} | {error, Reason},
+      Data :: {pid(), undefined},
+      Reason :: term().
 init(Args) ->
     Port = proplists:get_value(port, Args, default_port()),
     Opts = proplists:get_value(opts, Args, default_opts()),
@@ -86,12 +88,27 @@ init(Args) ->
     end.
 
 %%--------------------------------------------------------------------
-%%
+%% @doc terminate/3
 %%--------------------------------------------------------------------
--spec terminate(term(), {pid(), pid()|atom()}) -> ok.
-terminate(_Reason, {ListenSocket, _AcceptSocket}) ->
+-spec terminate(Reason, State, Data) -> Result when
+      Reason :: term(),
+      State :: active | listen,
+      Data :: tuple(),
+      Result :: ok.
+terminate(_Reason, _State, {ListenSocket, _AcceptSocket}) ->
     gen_tcp:close(ListenSocket).
 
+%%--------------------------------------------------------------------
+%% @doc listen/3
+%%--------------------------------------------------------------------
+-spec listen(Type, Message, Data) -> Result when
+      Type :: enter | cast | {call, From},
+      From :: term(),
+      Message :: term(),
+      Data :: term(),
+      Result :: {next_state, atom(), Data} |
+                {keep_state, Data} |
+                {keep_state, Data, [{reply, term(), ok}]}.
 listen(enter, _OldState, Data) ->
     {next_state, listen, Data};
 listen(cast, {add, acceptor, Counter}, Data) ->

@@ -44,11 +44,18 @@ flags() ->
 %%--------------------------------------------------------------------
 %% @doc child/0
 %%--------------------------------------------------------------------
--spec child() -> Result when
+-spec child(Type) -> Result when
+      Type :: listener | acceptor,
       Result :: map().
-child() ->
-    #{ id => whoisd_listener
-     , start => {whoisd_listener, start_link, []}
+child(listener) ->
+    #{ id => whoisd_listener_sup
+     , start => {whoisd_listener_sup, start_link, []}
+     , type => supervisor
+     };
+child(acceptor) ->
+    #{ id => whoisd_acceptor_sup
+     , start => {whoisd_acceptor_sup, start_link, []}
+     , type => supervisor
      }.
 
 %%--------------------------------------------------------------------
@@ -61,4 +68,5 @@ child() ->
       Childs :: [Child, ...],
       Child :: map().
 init([]) ->
-    {ok, {flags(), [child()]}}.
+    Childs = [child(listener), child(acceptor)],
+    {ok, {flags(), Childs}}.
