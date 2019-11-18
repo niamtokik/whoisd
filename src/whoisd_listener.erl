@@ -80,6 +80,7 @@ default_opts() ->
       Data :: {pid(), undefined},
       Reason :: term().
 init(Args) ->
+    pg2:join(whoisd_listener, self()),
     Port = proplists:get_value(port, Args, default_port()),
     Opts = proplists:get_value(opts, Args, default_opts()),
     case gen_tcp:listen(Port, Opts) of

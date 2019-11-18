@@ -5,11 +5,11 @@
   {mod, {whoisd_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    pg2
    ]},
   {env,[]},
   {modules, []},
-
   {licenses, ["Apache 2.0"]},
   {links, ["http://github.com/niamtokik/whoisd"]}
  ]}.

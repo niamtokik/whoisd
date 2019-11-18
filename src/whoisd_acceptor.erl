@@ -94,6 +94,7 @@ callback_mode() ->
       State :: {port(), port()},
       Result :: {ok, atom(), State}.
 init({ListenSocket, AcceptSocket}) ->
+    pg2:join(whoisd_acceptor, self()),
     {ok, active, {ListenSocket, AcceptSocket}}.
 
 %%--------------------------------------------------------------------

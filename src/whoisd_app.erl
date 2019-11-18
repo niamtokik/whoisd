@@ -13,7 +13,9 @@
       Type :: term(),
       Args :: term(),
       Result :: {ok, pid()}.
-start(_StartType, _StartArgs) ->
+start(_Type, Args) ->
+    pg2:create(whoisd_listener),
+    pg2:create(whoisd_acceptor),
     whoisd_sup:start_link().
 
 %%--------------------------------------------------------------------
@@ -23,4 +25,6 @@ start(_StartType, _StartArgs) ->
       State :: term(),
       Result :: ok.
 stop(_State) ->
+    pg2:delete(whoisd_acceptor),
+    pg2:delete(whoisd_listener),
     ok.
