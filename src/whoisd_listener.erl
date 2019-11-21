@@ -6,8 +6,11 @@
 -export([start_link/0, start_link/1, start_link/2]).
 -export([callback_mode/0, default_port/0, default_opts/0]).
 -export([init/1, terminate/3]).
--export([active/3, reuse/3, close/3]).
+-export([active/3, passive/3]).
+-export([socket/0, activate/0, close/0]).
 -behavior(gen_statem).
+-record(data, { socket = undefined :: port() | undefined
+              , args = { undefined, [] } :: tuple() }).
 
 %%--------------------------------------------------------------------
 %% @doc start/0
@@ -64,12 +67,26 @@ start_link(Args, Opts) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, Args, Opts).
 
 %%--------------------------------------------------------------------
+%% @doc default_port/0
+%%--------------------------------------------------------------------
+-spec default_port() -> Result when
+      Result :: integer().
+default_port() -> 8333.
+
+%%--------------------------------------------------------------------
 %% @doc default_opts/0
 %%--------------------------------------------------------------------
 -spec default_opts() -> Result when 
       Result :: list().
 default_opts() -> 
     [binary, {packet, 0}].
+
+%%--------------------------------------------------------------------
+%% @doc callback_mode/0
+%%--------------------------------------------------------------------
+-spec callback_mode() -> Result when
+      Result :: state_functions.
+callback_mode() -> state_functions.
 
 %%--------------------------------------------------------------------
 %% @doc init/1
@@ -84,7 +101,10 @@ init(Args) ->
     Port = proplists:get_value(port, Args, default_port()),
     Opts = proplists:get_value(opts, Args, default_opts()),
     case gen_tcp:listen(Port, Opts) of
-        {ok, ListenSocket} -> {ok, active, {ListenSocket, undefined}};
+        {ok, ListenSocket} -> 
+            Data = #data{ socket = ListenSocket
+                        , args = {Port, Opts} },
+            {ok, active, Data};
         {error, Reason} -> {stop, Reason}
     end.
 
@@ -96,67 +116,61 @@ init(Args) ->
       State :: active | listen,
       Data :: tuple(),
       Result :: ok.
-terminate(_Reason, _State, {ListenSocket, _AcceptSocket}) ->
+terminate(_Reason, _State, #data{ socket = ListenSocket }) ->
     gen_tcp:close(ListenSocket).
 
 %%--------------------------------------------------------------------
-%% @doc listen/3
+%% @doc active/3
 %%--------------------------------------------------------------------
--spec listen(Type, Message, Data) -> Result when
-      Type :: enter | cast | {call, From},
+-spec active(Type, Message, Data) -> Result when
+      Type :: cast | {call, From},
       From :: term(),
-      Message :: term(),
-      Data :: term(),
-      Result :: {next_state, atom(), Data} |
-                {keep_state, Data} |
-                {keep_state, Data, [{reply, term(), ok}]}.
-listen(enter, _OldState, Data) ->
-    {next_state, listen, Data};
-listen(cast, {add, acceptor, Counter}, Data) ->
-    [ whoisd_acceptor_sup:start_acceptor() || _ <- lists:seq(1, Counter) ],
-    {keep_state, Data};
-listen({call, From}, {get, acceptor}, Data) -> 
-    {keep_state, Data, [{reply, From, ok}]}.
+      Message :: close | {get, socket},
+      Data :: #data{},
+      Result :: {next_state, passive, Data} |
+                {keep_state, Data, Reply},
+      Reply :: [{reply, From, Socket}],
+      From :: pid(),
+      Socket :: port().
+active(cast, close, #data{ socket = ListenSocket } = Data) ->
+    gen_tcp:close(ListenSocket),
+    {next_state, passive, Data#data{ socket = undefined }};
+active({call, From}, socket, #data{ socket = ListenSocket } = Data) ->
+    {keep_state, Data, [{reply, From, ListenSocket}]}.
 
 %%--------------------------------------------------------------------
-%%
+%% @doc passive/3
 %%--------------------------------------------------------------------
-active(enter, _OldState, {ListenSocket, undefined}) ->
-    AcceptSocket = accept(ListenSocket),
-    {next_state, active, {ListenSocket, AcceptSocket}};
-active(info, {tcp, AcceptSocket, Message}, {ListenSocket, AcceptSocket}) ->
-    io:format("got message: ~p~n", [Message]),
-    {keep_state, {ListenSocket, AcceptSocket}};
-active(info, {tcp_closed, AcceptSocket}, {ListenSocket, AcceptSocket}) ->
-    gen_tcp:close(AcceptSocket),
-    {next_state, reuse, {ListenSocket, undefined}, [{next_event, internal, reuse}]};
-active(_Type, _Message, {ListenSocket, ActiveSocket}) ->
-    {keep_state, {ListenSocket, ActiveSocket}}.
+-spec passive(Type, Message, Data) -> Result when
+      Type :: cast,
+      Message :: active,
+      Data :: #data{},
+      Result :: {next_state, active, Data}.
+passive(cast, active, #data{ socket = undefined
+                        , args = {Port, Opts}} = Data) ->
+    {ok, ListenSocket} = gen_tcp:listen(Port, Opts),
+    {next_state, active, Data#data{ socket = ListenSocket }}.
 
 %%--------------------------------------------------------------------
-%%
+%% @doc get/0
 %%--------------------------------------------------------------------
-reuse(enter, _OldState, Data) -> {next_state, reuse, Data};
-reuse(internal, reuse, Data) -> {next_state, active, Data}.
+-spec socket() -> Result when
+      Result :: port().
+socket() ->
+    gen_statem:call(?MODULE, socket).
 
 %%--------------------------------------------------------------------
-%%
+%% @doc activate/0
 %%--------------------------------------------------------------------
-close(enter, _OldState, Data) -> {stop, close, Data}.
+-spec activate() -> Result when
+      Result :: ok.
+activate() ->
+    gen_statem:cast(?MODULE, active).
 
 %%--------------------------------------------------------------------
-%%
+%% @doc close/0
 %%--------------------------------------------------------------------
-callback_mode() -> [state_functions, state_enter].
-
-%%--------------------------------------------------------------------
-%%
-%%--------------------------------------------------------------------
-default_port() -> 8333.
-
-%%--------------------------------------------------------------------
-%%
-%%--------------------------------------------------------------------
-accept(ListenSocket) ->
-    {ok, AcceptSocket } = gen_tcp:accept(ListenSocket),
-    AcceptSocket.
+-spec close() -> Result when
+      Result :: ok.
+close() ->
+    gen_statem:cast(?MODULE, close).

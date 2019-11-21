@@ -1,16 +1,20 @@
 %%%-------------------------------------------------------------------
-%%% @doc whoisd_acceptor module
+%%% @doc whoisd_acceptor module create a new acceptor worker based
+%%%      on a listen socket given directly when we start it.
 %%%-------------------------------------------------------------------
 -module(whoisd_acceptor).
 -export([start/0, start/1, start/2]).
 -export([start_link/0, start_link/1, start_link/2]).
--export([callback_mode/0, default_port/0, default_opts/0]).
+-export([callback_mode/0]).
 -export([init/1, terminate/2]).
 -export([active/3, reuse/3, close/3]).
 -behavior(gen_statem).
+-record(data, { listen_socket = undefined 
+              , accept_socket = undefined }).
 
 %%--------------------------------------------------------------------
-%% @doc start/0
+%% @doc start/0 
+%% @see start/1
 %%--------------------------------------------------------------------
 -spec start() -> Result when
       Result :: {ok, pid()}.
@@ -19,6 +23,7 @@ start() ->
 
 %%--------------------------------------------------------------------
 %% @doc start/1
+%% @see start/2
 %%--------------------------------------------------------------------
 -spec start(Args) -> Result when
       Args :: list(),
@@ -27,7 +32,8 @@ start(Args) ->
     start(Args, []).
 
 %%--------------------------------------------------------------------
-%% @doc start/2
+%% @doc start/2 start a worker without link with acceptor arguments
+%%      and OTP options based on gen_statem.
 %%--------------------------------------------------------------------
 -spec start(Args, Opts) -> Result when
       Args :: list(),
@@ -64,38 +70,36 @@ start_link(Args, Opts) ->
     gen_statem:start_link(?MODULE, Args, Opts).
 
 %%--------------------------------------------------------------------
-%% @doc default_opts/0
-%%--------------------------------------------------------------------
--spec default_opts() -> Result when
-      Result :: list().
-default_opts() -> 
-    [binary, {packet, 0}].
-
-%%--------------------------------------------------------------------
-%% @doc default_port
-%%--------------------------------------------------------------------
--spec default_port() -> Result when
-      Result :: integer().
-default_port() ->
-    4343.
-
-%%--------------------------------------------------------------------
 %% @doc callback_mode/0
 %%--------------------------------------------------------------------
 -spec callback_mode() -> Result when
-      Result :: [atom(), ...].
-callback_mode() ->
-    [state_functions, state_enter].
+      Result :: list().
+callback_mode() -> [state_functions, state_enter].
 
 %%--------------------------------------------------------------------
 %% @doc init/1
 %%--------------------------------------------------------------------
--spec init(State) -> Result when
-      State :: {port(), port()},
-      Result :: {ok, atom(), State}.
-init({ListenSocket, AcceptSocket}) ->
+-spec init(Args) -> Result when
+      Args :: Proplist | port(),
+      Proplist :: [{atom(), term()}],
+      Result :: {ok, atom(), Data},
+      Data :: #data{}.
+init(ListenSocket) 
+  when is_port(ListenSocket) ->
     pg2:join(whoisd_acceptor, self()),
-    {ok, active, {ListenSocket, AcceptSocket}}.
+    {ok, active, #data{ listen_socket = ListenSocket }};
+init(Args) 
+  when is_list(Args) ->
+    pg2:join(whoisd_acceptor, self()),
+    ListenSocket = proplists:get_value(socket, Args, undefined),
+    case ListenSocket of
+        undefined -> 
+            {ok, passive, #data{}};
+        ListenSocket when is_port(ListenSocket) ->
+            {ok, active, #data{ listen_socket = ListenSocket }};
+        _ -> 
+            {stop, badargs}
+    end.
 
 %%--------------------------------------------------------------------
 %% @doc terminate/2
@@ -107,17 +111,15 @@ terminate(_Reason, {ListenSocket, _AcceptSocket}) ->
 %%--------------------------------------------------------------------
 %% @doc active/3
 %%--------------------------------------------------------------------
-active(enter, _OldState, {ListenSocket, undefined}) ->
+active(enter, _OldState, #data{ listen_socket = ListenSocket } = Data) ->
     AcceptSocket = accept(ListenSocket),
-    {next_state, active, {ListenSocket, AcceptSocket}};
-active(info, {tcp, AcceptSocket, Message}, {ListenSocket, AcceptSocket}) ->
-    io:format("got message: ~p~n", [Message]),
-    {keep_state, {ListenSocket, AcceptSocket}};
-active(info, {tcp_closed, AcceptSocket}, {ListenSocket, AcceptSocket}) ->
+    {next_state, active, Data#data{ accept_socket = AcceptSocket } };
+active(info, {tcp, _, Message}, #data{ accept_socket = AcceptSocket } = Data) ->
+    io:format("got message: ~p on ~p(~p)~n", [Message, self(), AcceptSocket]),
+    {keep_state, Data};
+active(info, {tcp_closed, _}, #data{ accept_socket = AcceptSocket } = Data) ->
     gen_tcp:close(AcceptSocket),
-    {next_state, reuse, {ListenSocket, undefined}, [{next_event, internal, reuse}]};
-active(_Type, _Message, {ListenSocket, ActiveSocket}) ->
-    {keep_state, {ListenSocket, ActiveSocket}}.
+    {next_state, reuse, Data#data{ accept_socket = undefined}, [{next_event, internal, reuse}]}.
 
 %%--------------------------------------------------------------------
 %% @doc reuse/3

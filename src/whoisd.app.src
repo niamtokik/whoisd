@@ -5,8 +5,7 @@
   {mod, {whoisd_app, []}},
   {applications,
    [kernel,
-    stdlib,
-    pg2
+    stdlib
    ]},
   {env,[]},
   {modules, []},
