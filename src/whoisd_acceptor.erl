@@ -111,6 +111,14 @@ terminate(_Reason, {ListenSocket, _AcceptSocket}) ->
 %%--------------------------------------------------------------------
 %% @doc active/3
 %%--------------------------------------------------------------------
+-spec active(Type, Message, Data) -> Result when
+      Type :: enter | info,
+      Message :: {tcp, _, TcpMessage} | {tcp_closed, _},
+      TcpMessage :: bitstring(),
+      Data :: #data{},
+      Result :: {keep_state, Data} |
+                {next_state, active, Data} |
+                {next_state, reuse, Data}.
 active(enter, _OldState, #data{ listen_socket = ListenSocket } = Data) ->
     AcceptSocket = accept(ListenSocket),
     {next_state, active, Data#data{ accept_socket = AcceptSocket } };
@@ -124,6 +132,11 @@ active(info, {tcp_closed, _}, #data{ accept_socket = AcceptSocket } = Data) ->
 %%--------------------------------------------------------------------
 %% @doc reuse/3
 %%--------------------------------------------------------------------
+-spec reuse(Type, Message, Data) -> Result when
+      Type :: enter | internal,
+      Message :: reuse,
+      Data :: #data{},
+      Result :: {nxt_state, reuse | active, Data}.
 reuse(enter, _OldState, Data) ->
     {next_state, reuse, Data};
 reuse(internal, reuse, Data) ->
