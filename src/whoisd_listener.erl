@@ -71,7 +71,7 @@ start_link(Args, Opts) ->
 %%--------------------------------------------------------------------
 -spec default_port() -> Result when
       Result :: integer().
-default_port() -> 8333.
+default_port() -> application:get_env(whoisd, port, 8333).
 
 %%--------------------------------------------------------------------
 %% @doc default_opts/0
@@ -79,7 +79,12 @@ default_port() -> 8333.
 -spec default_opts() -> Result when 
       Result :: list().
 default_opts() -> 
-    [binary, {packet, 0}, {active, once}].
+    Default = [binary
+              ,{packet, 0}
+              ,{send_timeout, 5}
+              ,{send_timeout_close, true}
+              ],
+    application:get_env(whoisd, listen_opts, Default).
 
 %%--------------------------------------------------------------------
 %% @doc callback_mode/0
@@ -103,7 +108,8 @@ init(Args) ->
     case gen_tcp:listen(Port, Opts) of
         {ok, ListenSocket} -> 
             Data = #data{ socket = ListenSocket
-                        , args = {Port, Opts} },
+                        , args = {Port, Opts} 
+                        },
             {ok, active, Data};
         {error, Reason} -> {stop, Reason}
     end.

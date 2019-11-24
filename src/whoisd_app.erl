@@ -13,7 +13,7 @@
       Type :: term(),
       Args :: term(),
       Result :: {ok, pid()}.
-start(_Type, Args) ->
+start(_Type, _Args) ->
     pg2:create(whoisd_listener),
     pg2:create(whoisd_acceptor),
     whoisd_sup:start_link().

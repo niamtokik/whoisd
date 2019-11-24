@@ -52,7 +52,7 @@ start_acceptor() ->
 -spec start_acceptor(Args) -> Result when
       Args :: list(),
       Result :: ok.
-start_acceptor(Args) ->
+start_acceptor(_Args) ->
     supervisor:start_child(?MODULE, []).
 
 %%--------------------------------------------------------------------
@@ -77,8 +77,9 @@ child() ->
 -spec child(Args) -> Result when
       Args :: list(),
       Result :: map().
-child(Args) ->
+child(_Args) ->
     #{ id => whoisd_acceptor
      , start => {whoisd_acceptor, start_link, []}
+     , restart => transient
      , type => worker
      }.

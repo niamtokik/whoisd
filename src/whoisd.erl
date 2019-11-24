@@ -17,7 +17,8 @@
       Args :: [list(), ...],
       Result :: any().
 main(Args) ->
-    main(Args, #{}).
+    Config = main(Args, #{}),
+    loop(Config).
 
 %%--------------------------------------------------------------------
 %% @doc main/2 function take a list of argument from command line and
@@ -39,8 +40,8 @@ main(["-address", Address|Rest], Buffer) ->
 %% @doc loop/0
 %% @end
 %%--------------------------------------------------------------------
-loop() ->
+loop(Args) ->
     receive
-        _ -> loop()
+        _ -> loop(Args)
     end.
              

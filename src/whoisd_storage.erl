@@ -102,7 +102,7 @@ terminate(_Reason, _State) ->
 %% @see gen_server:handle_call/3.
 %% @end
 %%--------------------------------------------------------------------
-handle_call(Message, From, State) ->
+handle_call(Message, _From, State) ->
     {reply, Message, State}.
 
 %%--------------------------------------------------------------------
@@ -111,6 +111,6 @@ handle_call(Message, From, State) ->
 %% @see gen_server:handle_cast/2.
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(Message, State) ->
+handle_cast(_Message, State) ->
     {noreply, State}.
 
