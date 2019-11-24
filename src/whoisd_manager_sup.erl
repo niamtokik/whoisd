@@ -1,9 +1,7 @@
 %%%-------------------------------------------------------------------
-%% @doc whoisd top level application supervisor.
-%% @end
+%%% @doc whoisd_manager_sup module
 %%%-------------------------------------------------------------------
--module(whoisd_sup).
--behaviour(supervisor).
+-module(whoisd_manager_sup).
 -export([start_link/0, start_link/1]).
 -export([stop/0]).
 -export([init/1]).
@@ -34,7 +32,7 @@ stop() ->
     supervisor:stop(?MODULE).
 
 %%--------------------------------------------------------------------
-%% @doc flag/0
+%% @doc flags/0
 %%--------------------------------------------------------------------
 -spec flags() -> Result when
       Result :: map().
@@ -44,35 +42,22 @@ flags() ->
 %%--------------------------------------------------------------------
 %% @doc child/0
 %%--------------------------------------------------------------------
--spec child(Type) -> Result when
-      Type :: listener | acceptor,
+-spec child() -> Result when
       Result :: map().
-child(listener) ->
-    #{ id => whoisd_listener_sup
-     , start => {whoisd_listener_sup, start_link, []}
-     , type => supervisor
-     };
-child(acceptor) ->
-    #{ id => whoisd_acceptor_sup
-     , start => {whoisd_acceptor_sup, start_link, []}
-     , type => supervisor
-     };
-child(manager) ->
-    #{ id => whoisd_manager_sup
-     , start => {whoisd_manager_sup, start_link, []}
-     , type => supervisor
+child() -> 
+    #{ id => whoisd_manager
+     , start => { whoisd_manager, start_link, []}
+     , type => worker
      }.
 
-
 %%--------------------------------------------------------------------
-%% @doc init/1
+%% @doc init/0
 %%--------------------------------------------------------------------
 -spec init(Args) -> Result when
       Args :: list(),
-      Result :: {ok, {Flag, Childs}},
-      Flag :: map(),
+      Result :: {ok, Flags, Childs},
+      Flags :: map(),
       Childs :: [Child, ...],
       Child :: map().
-init([]) ->
-    Childs = [child(manager), child(listener), child(acceptor)],
-    {ok, {flags(), Childs}}.
+init(_Args) ->
+    {ok, {flags(), [child()]}}.
