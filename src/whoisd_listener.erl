@@ -81,6 +81,7 @@ default_port() -> application:get_env(whoisd, port, 8333).
 default_opts() -> 
     Default = [binary
               ,{packet, 0}
+              ,{packet_size, 65535}
               ,{send_timeout, 5}
               ,{send_timeout_close, true}
               ],
@@ -142,7 +143,11 @@ active(cast, close, #data{ socket = ListenSocket } = Data) ->
     gen_tcp:close(ListenSocket),
     {next_state, passive, Data#data{ socket = undefined }};
 active({call, From}, socket, #data{ socket = ListenSocket } = Data) ->
-    {keep_state, Data, [{reply, From, ListenSocket}]}.
+    {keep_state, Data, [{reply, From, ListenSocket}]};
+active(Type, Message, Data) ->
+    io:format("got: ~p,~p~n", [Type, Message]),
+    {keep_state, Data}.
+
 
 %%--------------------------------------------------------------------
 %% @doc passive/3

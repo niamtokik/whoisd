@@ -118,6 +118,7 @@ active(info, {tcp, Socket, Message}, Data) ->
     io:format("got message: ~p on ~p(~p)~n", [Message, self(), Socket]),
     {ok, Answer} = whoisd_service:request(Message),
     gen_tcp:send(Socket, Answer),
+    gen_tcp:shutdown(Socket, write),
     {stop, normal, Data};
 active(info, {tcp_closed, _}, Data) ->
     {stop, normal, Data};
