@@ -1,11 +1,17 @@
 %%%--------------------------------------------------------------------
-%%% @doc whois server CLI
+%%% @doc whois server CLI. This code executed when whoisd is called
+%%%      from the command line.
+%%% @end
 %%%--------------------------------------------------------------------
 -module(whoisd).
 -export([main/1]).
 
 %%--------------------------------------------------------------------
-%% @doc main/1
+%% @doc main/1 get arguments from command line and parse them with the
+%%      help of main/2 function.
+%% @end
+%% @see main/2.
+%% @end
 %%--------------------------------------------------------------------
 -spec main(Args) -> Result when
       Args :: [list(), ...],
@@ -14,7 +20,9 @@ main(Args) ->
     main(Args, #{}).
 
 %%--------------------------------------------------------------------
-%% @doc main/2
+%% @doc main/2 function take a list of argument from command line and
+%%      create a structured map based on supported input.
+%% @end
 %%--------------------------------------------------------------------
 -spec main(Args, Buffer) -> Result when
       Args :: [list(), ...],
@@ -29,6 +37,7 @@ main(["-address", Address|Rest], Buffer) ->
 
 %%--------------------------------------------------------------------
 %% @doc loop/0
+%% @end
 %%--------------------------------------------------------------------
 loop() ->
     receive

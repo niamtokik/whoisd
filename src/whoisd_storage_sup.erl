@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
-%%% @doc whoisd_acceptor_sup module
+%%% @doc whoisd_storage_sup module
+%%% @end
 %%%-------------------------------------------------------------------
--module(whoisd_acceptor_sup).
+-module(whoisd_storage_sup).
 -export([start_link/0, start_link/1]).
 -export([init/1]).
--export([start_acceptor/0, start_acceptor/1]).
 -export([flags/0]).
 -export([child/0]).
 -behavior(supervisor).
@@ -39,29 +39,12 @@ init(_Args) ->
     {ok, {flags(), [child()]}}.
 
 %%--------------------------------------------------------------------
-%% @doc start_acceptor/0
-%%--------------------------------------------------------------------
--spec start_acceptor() -> Result when
-      Result :: ok.
-start_acceptor() ->
-    start_acceptor([]).
-
-%%--------------------------------------------------------------------
-%% @doc start_acceptor/1
-%%--------------------------------------------------------------------
--spec start_acceptor(Args) -> Result when
-      Args :: list(),
-      Result :: ok.
-start_acceptor(Args) ->
-    supervisor:start_child(?MODULE, child(Args)).
-
-%%--------------------------------------------------------------------
 %% @doc flags/0
 %%--------------------------------------------------------------------
 -spec flags() -> Result when
       Result :: map().
 flags() ->
-    #{ strategy => simple_one_for_one }.
+    #{ strategy => one_for_one }.
 
 %%--------------------------------------------------------------------
 %% @doc child/0
@@ -78,8 +61,8 @@ child() ->
       Args :: list(),
       Result :: map().
 child(Args) ->
-    #{ id => whoisd_acceptor
-     , start => {whoisd_acceptor, start_link, [Args]}
+    #{ id => whoisd_storage
+     , start => {whoisd_storage, start_link, [Args]}
      , type => worker
      }.
-    
+
