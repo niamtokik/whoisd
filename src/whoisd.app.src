@@ -7,7 +7,7 @@
    [kernel,
     stdlib
    ]},
-  {env,[]},
+  {env,[{acceptor, 100}]},
   {modules, []},
   {licenses, ["Apache 2.0"]},
   {links, ["http://github.com/niamtokik/whoisd"]}

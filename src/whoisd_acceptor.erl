@@ -80,26 +80,13 @@ callback_mode() -> [state_functions, state_enter].
 %% @doc init/1
 %%--------------------------------------------------------------------
 -spec init(Args) -> Result when
-      Args :: Proplist | port(),
-      Proplist :: [{atom(), term()}],
+      Args :: term(),
       Result :: {ok, atom(), Data},
       Data :: #data{}.
-init(ListenSocket) 
-  when is_port(ListenSocket) ->
+init(_Args) ->
     pg2:join(whoisd_acceptor, self()),
-    {ok, active, #data{ listen_socket = ListenSocket }};
-init(Args) 
-  when is_list(Args) ->
-    pg2:join(whoisd_acceptor, self()),
-    ListenSocket = proplists:get_value(socket, Args, undefined),
-    case ListenSocket of
-        undefined -> 
-            {ok, passive, #data{}};
-        ListenSocket when is_port(ListenSocket) ->
-            {ok, active, #data{ listen_socket = ListenSocket }};
-        _ -> 
-            {stop, badargs}
-    end.
+    ListenSocket = whoisd_listener:socket(),
+    {ok, active, #data{ listen_socket = ListenSocket }}.
 
 %%--------------------------------------------------------------------
 %% @doc terminate/2
@@ -123,8 +110,12 @@ active(enter, _OldState, #data{ listen_socket = ListenSocket } = Data) ->
     AcceptSocket = accept(ListenSocket),
     {next_state, active, Data#data{ accept_socket = AcceptSocket } };
 active(info, {tcp, _, Message}, #data{ accept_socket = AcceptSocket } = Data) ->
+    {ok, Answer} = whoisd_service:request(Message),
+    gen_tcp:send(AcceptSocket, Answer),
     io:format("got message: ~p on ~p(~p)~n", [Message, self(), AcceptSocket]),
-    {keep_state, Data};
+    gen_tcp:shutdown(AcceptSocket, write),
+    gen_tcp:close(AcceptSocket),
+    {next_state, reuse, Data#data{ accept_socket = undefined }};
 active(info, {tcp_closed, _}, #data{ accept_socket = AcceptSocket } = Data) ->
     gen_tcp:close(AcceptSocket),
     {next_state, reuse, Data#data{ accept_socket = undefined}, [{next_event, internal, reuse}]}.

@@ -82,10 +82,10 @@ child(Module, Args) ->
       Childs :: [Child, ...],
       Child :: map().
 init(_Args) ->
-    Childs = [child(whoisd_manager_sup)
-             ,child(whoisd_listener_sup)
+    Childs = [child(whoisd_listener_sup)
              ,child(whoisd_acceptor_sup)
              ,child(whoisd_storage_sup)
              ,child(whoisd_service_sup)
+             ,child(whoisd_manager_sup)
              ],
     {ok, {flags(), Childs}}.

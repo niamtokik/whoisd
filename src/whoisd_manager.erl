@@ -80,6 +80,8 @@ start_link(Args, Opts) ->
       Result :: {ok, State},
       State :: state().
 init(_Args) ->
+    Acceptors = application:get_env(whoisd, acceptor, 10),
+    [ whoisd_acceptor_sup:start_acceptor() || _ <- lists:seq(1, Acceptors) ],
     {ok, #{}}.
 
 %%--------------------------------------------------------------------

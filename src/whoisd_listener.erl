@@ -79,7 +79,7 @@ default_port() -> 8333.
 -spec default_opts() -> Result when 
       Result :: list().
 default_opts() -> 
-    [binary, {packet, 0}].
+    [binary, {packet, 0}, {active, once}].
 
 %%--------------------------------------------------------------------
 %% @doc callback_mode/0

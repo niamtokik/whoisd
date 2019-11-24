@@ -7,6 +7,7 @@
 -export([start_link/0, start_link/1, start_link/2]).
 -export([init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2]).
+-export([request/1]).
 -behaviour(gen_server).
 
 %%--------------------------------------------------------------------
@@ -114,3 +115,9 @@ handle_call(Message, From, State) ->
 handle_cast(Message, State) ->
     {noreply, State}.
 
+%%--------------------------------------------------------------------
+%% @doc request/1
+%%--------------------------------------------------------------------
+request(Message) ->
+    {ok, <<"this is my answer">>}.
+    

@@ -53,7 +53,7 @@ start_acceptor() ->
       Args :: list(),
       Result :: ok.
 start_acceptor(Args) ->
-    supervisor:start_child(?MODULE, child(Args)).
+    supervisor:start_child(?MODULE, []).
 
 %%--------------------------------------------------------------------
 %% @doc flags/0
@@ -79,7 +79,6 @@ child() ->
       Result :: map().
 child(Args) ->
     #{ id => whoisd_acceptor
-     , start => {whoisd_acceptor, start_link, [Args]}
+     , start => {whoisd_acceptor, start_link, []}
      , type => worker
      }.
-    
