@@ -16,7 +16,10 @@
 start(_Type, _Args) ->
     pg2:create(whoisd_listener),
     pg2:create(whoisd_acceptor),
-    whoisd_sup:start_link().
+    {ok, Pid} = whoisd_sup:start_link(),
+    Children = application:get_env(whoisd, acceptor, 100),
+    [ whoisd_acceptor_sup:start_acceptor() ||  _ <- lists:seq(1, Children) ],
+    {ok, Pid}.
 
 %%--------------------------------------------------------------------
 %% @doc stop/1

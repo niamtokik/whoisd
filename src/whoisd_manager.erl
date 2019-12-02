@@ -3,6 +3,7 @@
 %%%      a simple interface to other whoisd processes, you can easily
 %%%      start listener, acceptor or retrieve stats from different
 %%%      running processes related to whoisd.
+%%% @end
 %%%-------------------------------------------------------------------
 -module(whoisd_manager).
 -export([start/0, start/1, start/2]).
@@ -80,8 +81,6 @@ start_link(Args, Opts) ->
       Result :: {ok, State},
       State :: state().
 init(_Args) ->
-    Acceptors = application:get_env(whoisd, acceptor, 10),
-    [ whoisd_acceptor_sup:start_acceptor() || _ <- lists:seq(1, Acceptors) ],
     {ok, #{}}.
 
 %%--------------------------------------------------------------------
@@ -96,6 +95,7 @@ terminate(_Reason, _State) ->
 
 %%--------------------------------------------------------------------
 %% @doc handle_call/3
+%% @end
 %%--------------------------------------------------------------------
 -spec handle_call(Message, From, State) -> Result when
       Message :: listener | acceptor,
@@ -111,6 +111,7 @@ handle_call(acceptor, _From, State) ->
 
 %%--------------------------------------------------------------------
 %% @doc handle_cast/3
+%% @end
 %%--------------------------------------------------------------------
 -spec handle_cast(Message, State) -> Result when
       Message :: Acceptor,
@@ -124,6 +125,7 @@ handle_cast(acceptor, State) ->
 handle_cast({acceptor, _Args}, State) ->
     {noreply, State};
 handle_cast({acceptor, _Args, _Opts}, State) ->
+    {ok, _Pid} = whoisd_acceptor_sup:start_acceptor(),
     {noreply, State}.
 
 %%--------------------------------------------------------------------

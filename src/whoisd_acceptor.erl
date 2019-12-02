@@ -74,7 +74,7 @@ start_link(Args, Opts) ->
 %%--------------------------------------------------------------------
 -spec callback_mode() -> Result when
       Result :: list().
-callback_mode() -> state_functions.
+callback_mode() -> [state_functions, state_enter].
 
 %%--------------------------------------------------------------------
 %% @doc init/1
@@ -86,9 +86,8 @@ callback_mode() -> state_functions.
 init(_Args) ->
     pg2:join(whoisd_acceptor, self()),
     ListenSocket = whoisd_listener:socket(),
-    {ok, AcceptSocket} = gen_tcp:accept(ListenSocket),
     {ok, active, #data{ listen_socket = ListenSocket
-                      , accept_socket = AcceptSocket }}.
+                      , accept_socket = undefined }}.
 
 %%--------------------------------------------------------------------
 %% @doc terminate/3
@@ -114,6 +113,9 @@ terminate(_Reason, _State, #data{ accept_socket = AcceptSocket }) ->
       Data :: #data{},
       Result :: {stop, normal, Data} |
                 {keep_state, Data}.
+active(enter, _OldState, #data{ listen_socket = ListenSocket } = Data) ->
+    {ok, AcceptSocket} = gen_tcp:accept(ListenSocket),
+    {next_state, active, Data#data{ accept_socket = AcceptSocket }};
 active(info, {tcp, Socket, Message}, Data) ->
     io:format("got message: ~p on ~p(~p)~n", [Message, self(), Socket]),
     {ok, Answer} = whoisd_service:request(Message),
