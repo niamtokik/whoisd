@@ -18,7 +18,7 @@ start(_Type, _Args) ->
     %           start by using `pg`" module.
 
     % TODO-002: add a way to start the main application supervisor
-    % process named `whoisd_sup`.
+    %           process named `whoisd_sup`.
     ok.
 
 %%--------------------------------------------------------------------
