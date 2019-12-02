@@ -60,4 +60,13 @@ child() ->
       Childs :: [Child, ...],
       Child :: map().
 init(_Args) ->
-    {ok, {flags(), [child()]}}.
+    % TODO-005: find a way to configure this supervisor with a
+    %           one_for_one strategy. you can read `supervisor`
+    %           documentation.
+    Flags = #{},
+
+    % TODO-006: find a way to start the main worker child named
+    %           whoisd_listener. you can use the internal function in
+    %           this module.
+    Children = []
+    {ok, {Flags, Children}}.

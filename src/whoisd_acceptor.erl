@@ -84,8 +84,14 @@ callback_mode() -> [state_functions, state_enter].
       Result :: {ok, atom(), Data},
       Data :: #data{}.
 init(_Args) ->
-    pg2:join(whoisd_acceptor, self()),
-    ListenSocket = whoisd_listener:socket(),
+    % TODO-010: like whoisd_listener, find a way to add this process
+    %           in whoisd_listener pg2 group.
+
+    % TODO-011: find a way to get the listener socket and use it to
+    %           enable the acceptor process. There lot of methods
+    %           possible and not good answer.
+    ListenSocket = my_beautiful_socket,
+
     {ok, active, #data{ listen_socket = ListenSocket
                       , accept_socket = undefined }}.
 
@@ -117,10 +123,13 @@ active(enter, _OldState, #data{ listen_socket = ListenSocket } = Data) ->
     {ok, AcceptSocket} = gen_tcp:accept(ListenSocket),
     {next_state, active, Data#data{ accept_socket = AcceptSocket }};
 active(info, {tcp, Socket, Message}, Data) ->
-    io:format("got message: ~p on ~p(~p)~n", [Message, self(), Socket]),
-    {ok, Answer} = whoisd_service:request(Message),
-    gen_tcp:send(Socket, Answer),
-    gen_tcp:shutdown(Socket, write),
+    % TODO-012: when a message is coming in the mailbox, you will need
+    %           to do something. find a way to print the message on
+    %           the screen and reply something to the client.
+
+    % TODO-013: WHOIS protocol must close the socket after sending the
+    %           answer to the client. Find a way to alert the client
+    %           that you don't have new data. hints look gen_tcp:shutdown/2
     {stop, normal, Data};
 active(info, {tcp_closed, _}, Data) ->
     {stop, normal, Data};

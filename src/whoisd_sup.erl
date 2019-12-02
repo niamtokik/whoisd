@@ -82,10 +82,10 @@ child(Module, Args) ->
       Childs :: [Child, ...],
       Child :: map().
 init(_Args) ->
-    Childs = [child(whoisd_listener_sup)
-             ,child(whoisd_acceptor_sup)
-             ,child(whoisd_storage_sup)
-             ,child(whoisd_service_sup)
-             ,child(whoisd_manager_sup)
-             ],
-    {ok, {flags(), Childs}}.
+    % TODO-004: find a way to start these children:
+    %           `whoisd_listener_sup`, `whoisd_acceptor_sup`,
+    %           `whoisd_storage_sup`, `whoisd_service_sup` and
+    %           `whoisd_manager_sup`, all as supervisor. You can use
+    %           the different helpers defined in this module.
+    Children = []
+    {ok, {flags(), Children}}.

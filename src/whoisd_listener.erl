@@ -103,9 +103,17 @@ callback_mode() -> state_functions.
       Data :: {pid(), undefined},
       Reason :: term().
 init(Args) ->
-    pg2:join(whoisd_listener, self()),
-    Port = proplists:get_value(port, Args, default_port()),
-    Opts = proplists:get_value(opts, Args, default_opts()),
+    % TODO-007: find a way to automatically add this process in
+    %           whoisd_listener pg2 group.
+
+    % TODO-008: find a way to configure default listen port and
+    %           options. whoisd_listener need a port to listen and
+    %           probably different options. These options can be
+    %           retrieved from different part of the code. The first
+    %           one is directly from the `Args` parameter, another one
+    %           is by using application environment variables.
+    _Port = 65535,
+    _Opts = [],
     case gen_tcp:listen(Port, Opts) of
         {ok, ListenSocket} -> 
             Data = #data{ socket = ListenSocket
@@ -124,7 +132,10 @@ init(Args) ->
       Data :: tuple(),
       Result :: ok.
 terminate(_Reason, _State, #data{ socket = ListenSocket }) ->
-    gen_tcp:close(ListenSocket).
+    % TODO-009: find a way to close the socket managed by
+    %           whoisd_listener. You can read `gen_tcp` module man
+    %           page.
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc active/3

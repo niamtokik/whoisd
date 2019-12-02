@@ -115,9 +115,6 @@ handle_call(Message, _From, State) ->
 handle_cast(_Message, State) ->
     {noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @doc request/1
-%%--------------------------------------------------------------------
-request(_Message) ->
-    {ok, <<"this is my answer\n">>}.
-    
+% TODO-014: this is your turn! create a full whoisd_service process,
+%           this one will react to different message sent by the
+%           clients. You will use `gen_server` behaviour.
