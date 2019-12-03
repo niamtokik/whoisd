@@ -102,6 +102,12 @@ terminate(_Reason, _State) ->
       From :: term(),
       State :: state(),
       Result :: {reply, term(), state()}.
+
+% TODO-M01: find a way to retrieve information about the different
+%           acceptors
+%
+% TODO-M02: find a way to retrieve information about the different
+%           established connections
 handle_call(listener, _From, State) ->
     Response = pg2:get_members(whoisd_listener),
     {reply, Response, State};
@@ -120,6 +126,8 @@ handle_call(acceptor, _From, State) ->
       Opts :: list(),
       State :: state(),
       Result :: {noreply, state()}.
+
+% TODO-M03: find a way to spawn dynamically new acceptors
 handle_cast(acceptor, State) ->
     {noreply, State};
 handle_cast({acceptor, _Args}, State) ->

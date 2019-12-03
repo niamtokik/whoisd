@@ -114,3 +114,9 @@ handle_call(Message, _From, State) ->
 handle_cast(_Message, State) ->
     {noreply, State}.
 
+% TODO-ST1: find a way to store local information about different
+%           domain name. you can use different solution there, Erlang
+%           can give you ETS/DETS but also Mnesia. You can also use
+%           some external libraries and store information in classical
+%           database like MySQL or PostgreSQL.
+
