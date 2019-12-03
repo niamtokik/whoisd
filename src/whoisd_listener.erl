@@ -103,10 +103,10 @@ callback_mode() -> state_functions.
       Data :: {pid(), undefined},
       Reason :: term().
 init(Args) ->
-    % TODO-007: find a way to automatically add this process in
+    % TODO-L01: find a way to automatically add this process in
     %           whoisd_listener pg2 group.
 
-    % TODO-008: find a way to configure default listen port and
+    % TODO-L02: find a way to configure default listen port and
     %           options. whoisd_listener need a port to listen and
     %           probably different options. These options can be
     %           retrieved from different part of the code. The first
@@ -132,7 +132,7 @@ init(Args) ->
       Data :: tuple(),
       Result :: ok.
 terminate(_Reason, _State, #data{ socket = ListenSocket }) ->
-    % TODO-009: find a way to close the socket managed by
+    % TODO-L03: find a way to close the socket managed by
     %           whoisd_listener. You can read `gen_tcp` module man
     %           page.
     ok.
@@ -179,7 +179,9 @@ passive(cast, active, #data{ socket = undefined
 -spec socket() -> Result when
       Result :: port().
 socket() ->
-    gen_statem:call(?MODULE, socket).
+    % TODO-L04: find a way to create an API function to retrieve
+    %           socket.
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc activate/0

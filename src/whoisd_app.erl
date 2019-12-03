@@ -14,10 +14,10 @@
       Args :: term(),
       Result :: {ok, pid()}.
 start(_Type, _Args) ->
-    % TODO-001: add a way to create process group when the application
+    % TODO-A01: add a way to create process group when the application
     %           start by using `pg`" module.
 
-    % TODO-002: add a way to start the main application supervisor
+    % TODO-A02: add a way to start the main application supervisor
     %           process named `whoisd_sup`.
     ok.
 
@@ -28,6 +28,6 @@ start(_Type, _Args) ->
       State :: term(),
       Result :: ok.
 stop(_State) ->
-    % TODO-003: add a way to clean the application and remove
+    % TODO-A03: add a way to clean the application and remove
     %           different group from `pg2`.
     ok.
