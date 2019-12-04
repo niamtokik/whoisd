@@ -114,10 +114,10 @@ init(Args) ->
     %           is by using application environment variables.
     _Port = 65535,
     _Opts = [],
-    case gen_tcp:listen(Port, Opts) of
+    case gen_tcp:listen(_Port, _Opts) of
         {ok, ListenSocket} -> 
             Data = #data{ socket = ListenSocket
-                        , args = {Port, Opts} 
+                        , args = {_Port, _Opts} 
                         },
             {ok, active, Data};
         {error, Reason} -> {stop, Reason}

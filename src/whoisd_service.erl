@@ -7,7 +7,6 @@
 -export([start_link/0, start_link/1, start_link/2]).
 -export([init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2]).
--export([request/1]).
 -behaviour(gen_server).
 
 %%--------------------------------------------------------------------
@@ -115,6 +114,6 @@ handle_call(Message, _From, State) ->
 handle_cast(_Message, State) ->
     {noreply, State}.
 
-% TODO-014: this is your turn! create a full whoisd_service process,
+% TODO-SE1: this is your turn! create a full whoisd_service process,
 %           this one will react to different message sent by the
 %           clients. You will use `gen_server` behaviour.
